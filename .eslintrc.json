@@ -1,0 +1,72 @@
+{
+    "env": {
+      "es2021": true,
+      "node": true,
+      "jest": true
+    },
+    "extends": [
+      "standard",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:prettier/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaFeatures": {
+        "jsx": true
+      },
+      "ecmaVersion": 12,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "@typescript-eslint",
+      "prettier",
+      "eslint-plugin-import-helpers"
+    ],
+    "rules": {
+      "array-callback-return": "off",
+      "prettier/prettier": "error",
+      "space-before-function-paren": "off",
+      "no-use-before-define": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "semi": [
+        2,
+        "always"
+      ],
+      // "@typescript-eslint/indent": [
+      //   "error",
+      //   2
+      // ],
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          "selector": "interface",
+          "format": [
+            "PascalCase"
+          ],
+          "custom": {
+            "regex": "^I[A-Z]",
+            "match": true
+          }
+        }
+      ],
+      "import-helpers/order-imports": [
+        "warn",
+        {
+          "newlinesBetween": "always",
+          "groups": [
+            "module",
+            "/^@/",
+            [
+              "parent",
+              "sibling",
+              "index"
+            ]
+          ],
+          "alphabetize": {
+            "order": "asc",
+            "ignoreCase": true
+          }
+        }
+      ]
+    }
+  }
