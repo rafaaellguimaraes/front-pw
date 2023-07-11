@@ -14,6 +14,11 @@
   justify-content: center;
   flex-direction: column;
 
+  h1{
+    color: var(--white);
+    margin-bottom: 1rem;
+  }
+
   form{
     width: 90%;
     display: flex;
