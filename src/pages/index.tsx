@@ -2,11 +2,13 @@ import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FormEvent, useContext, useState } from 'react'
+import { toast } from 'react-toastify'
 import logoImg from '../../public/logo.jpg'
 import styles from '../../styles/Home.module.scss'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { AuthContext } from '../contexts/AuthContext'
+import { canSSRGuest } from '../utils/canSSRGuest'
 
 export default function Home() {
   const { signIn } = useContext(AuthContext);
@@ -18,12 +20,20 @@ export default function Home() {
   async function handleLogin(event: FormEvent){
     event.preventDefault();
 
+    if (!email || !password) {
+      toast.error('Preencha todos os campos');
+      return;
+    }
+
+    setLoading(true);
+
     let data = {
       email,
       password
     }
 
     await signIn(data)
+    setLoading(false);
   }
 
 
@@ -49,10 +59,10 @@ export default function Home() {
               onChange={event => setPassword(event.target.value)}
               />
 
-            <Button type='submit' loading={false}>Acessar</Button>
+            <Button type='submit' loading={loading}>Acessar</Button>
           </form>
-          <Link href="/signup" legacyBehavior>
 
+          <Link href="/signup" legacyBehavior>
             <a className={styles.text}>Ainda não possui uma conta? Cadastre-se</a>
           </Link>
         </div>
@@ -60,3 +70,9 @@ export default function Home() {
     </>
   )
 }
+
+export const getServerSideProps = canSSRGuest(async (ctx) => {
+  return {
+    props: {}
+  }
+})

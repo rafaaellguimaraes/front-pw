@@ -1,6 +1,7 @@
 import Router from 'next/router';
-import { destroyCookie, setCookie } from 'nookies';
-import { ReactNode, createContext, useState } from 'react';
+import { destroyCookie, parseCookies, setCookie } from 'nookies';
+import { ReactNode, createContext, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { api } from '../services/apiClient';
 
 // Tem uma propriedade user que recebe as informações do usuário
@@ -9,6 +10,7 @@ type AuthContextData = {
   isAuthenticated: boolean;
   signIn: (data: SignInData) => Promise<void>;
   signOut: () => void;
+  signUp: (data: SignUpData) => Promise<void>;
 }
 
 type UserProps = {
@@ -22,6 +24,14 @@ type UserProps = {
 type SignInData = {
   email: string;
   password: string;
+}
+
+type SignUpData = {
+  email: string;
+  password: string;
+  name: string;
+  nick: string;
+  classChar: string;
 }
 
 type AuthProviderProps = {
@@ -45,6 +55,27 @@ export function signOut(){
 export function AuthProvider({children}: AuthProviderProps){
   const [user, setUser] = useState<UserProps>({} as UserProps);
   const isAuthenticated = !!user; // Converte o user para booleano
+
+  useEffect(() => {
+    // O get é uma função do pacote nookies que pega o cookie do navegador do usuário
+    const { '@nextauth.token': token } = parseCookies()
+
+    if(token){
+      api.get('/userinfo').then(response => {
+        const { id, name, email, nickname, classe } = response.data;
+
+        setUser({
+          id,
+          name,
+          email,
+          nickname,
+          classe
+        })
+      }).catch(() => {
+        signOut()
+      })
+    }
+  });
 
   async function signIn({email, password}: SignInData){
     try{
@@ -71,16 +102,48 @@ export function AuthProvider({children}: AuthProviderProps){
       // Passar para proximas requisições o token
       api.defaults.headers['Authorization'] = `Bearer ${token}`
 
+      toast.success('Login realizado com sucesso!')
+
       // Redireciona o usuário para a página de dashboard
       Router.push('/dashboard')
     }catch(err){
       console.log(err)
+      toast.error('Usuário ou senha incorretos!')
+    }
+  }
+
+  async function signUp({email, name, nick, classChar, password}: SignUpData){
+    try{
+      const response = await api.post('/users', {
+        email,
+        name,
+        nick,
+        classChar,
+        password
+      })
+
+      const { id, nickname, classe } = response.data;
+
+      setUser({
+        id,
+        name,
+        email,
+        nickname,
+        classe
+      })
+
+      toast.success('Cadastro realizado com sucesso!')
+      // Redireciona o usuário para a página de login
+      Router.push('/')
+    }catch(err){
+      console.log(err)
+      toast.error('Erro ao realizar cadastro!')
     }
   }
 
   return (
     // O value é o valor que vai ser passado para todos os componentes que estiverem dentro do AuthContext.Provider
-    <AuthContext.Provider value={{ user, isAuthenticated, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, signIn, signOut, signUp }}>
       {children}
     </AuthContext.Provider>
   )
